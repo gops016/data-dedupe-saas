@@ -3,6 +3,24 @@
 ## 1. Document Overview
 This document outlines the standard operating procedures for installing, configuring, running, and QA-verifying the Data Quality and Deduplication SaaS application.
 
+### 1.1 Single-File Running Guide (Recommended for Sharing & Client Execution)
+The entire SaaS application (FastAPI backend + React/Tailwind frontend) is compiled into a single portable Python file: `app.py`. This offers a zero-config setup to run and share the application instantly.
+
+#### Prerequisites
+* Python 3.10 or higher
+* Required packages: `polars`, `fastapi`, `uvicorn`, `python-multipart`, `openpyxl`, `xlsxwriter`
+
+#### How to Run:
+1. **Install dependencies**:
+   ```bash
+   pip install polars fastapi uvicorn python-multipart openpyxl xlsxwriter
+   ```
+2. **Run the app**:
+   ```bash
+   python app.py
+   ```
+3. **Access the interface**: Open your web browser and navigate to `http://127.0.0.1:8000/`
+
 ---
 
 ## 2. System Architecture & Setup
@@ -157,14 +175,20 @@ Once QA is complete, download the resolved sheets:
 
 To share the application with clients:
 1. Open a terminal on the host machine.
-2. Run localtunnel to expose the Vite server (port 3000):
-   ```bash
-   npx -y localtunnel --port 3000 --local-host 127.0.0.1
-   ```
-3. Copy the generated public URL (e.g. `https://tiny-sites-dig.loca.lt`).
-4. Find the public IP of the host machine (bypass password):
+2. Run localtunnel pointing to the running server port:
+   * **For Single-File App (Recommended)**: Expose port 8000:
+     ```bash
+     npx -y localtunnel --port 8000 --local-host 127.0.0.1
+     ```
+   * **For Multi-File Dev Setup**: Expose port 3000:
+     ```bash
+     npx -y localtunnel --port 3000 --local-host 127.0.0.1
+     ```
+3. Copy the generated public URL (e.g., `https://clean-teeth-bake.loca.lt`).
+4. Find the public IP of the host machine (which serves as the localtunnel bypass password):
    * Windows PowerShell command:
      ```powershell
      Invoke-RestMethod -Uri https://ipinfo.io/ip
      ```
-5. Send both the **URL** and the **IP Bypass Password** to the client.
+5. Send the **URL** and the **IP Bypass Password** (the public IP) to the client.
+
