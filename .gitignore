@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+backend/cache/
+backend/uploads/
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+frontend/.svelte-kit/
+.DS_Store
