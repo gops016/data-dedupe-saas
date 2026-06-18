@@ -120,9 +120,10 @@ The cleansing pipeline normalizes raw, dirty data into standard match tokens usi
 
 ### Step 1: Uploading Datasets
 * **File 1 (Primary Master)**: Upload your baseline reference dataset (e.g., CRM database).
-  *(For testing, you can use the sample file: `mock_data/sample_crm_master.csv`)*
+  *(For testing, you can use the sample file: `mock_data/mock_file_1.csv`)*
 * **File 2 (Secondary Target) [Optional]**: Upload the target dataset you want to clean (e.g., new lead list).
-  *(For testing, you can use the sample file: `mock_data/sample_leads_target.csv`)*
+  *(For testing, you can use the sample file: `mock_data/mock_file_2.csv`)*
+
 
 
 ### Step 2: Choosing Deduplication Mode
