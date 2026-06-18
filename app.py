@@ -10,7 +10,7 @@ import polars as pl
 import uvicorn
 from fastapi import FastAPI, UploadFile, File, Form, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
 
 # -------------------------------------------------------------
 # 1. SETUP & CONFIG
@@ -20,9 +20,37 @@ logging.basicConfig(level=logging.INFO)
 
 UPLOAD_DIR = "./uploads"
 CACHE_DIR = "./cache"
+STATIC_DIR = "./static"
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(CACHE_DIR, exist_ok=True)
+os.makedirs(STATIC_DIR, exist_ok=True)
+
+JS_CDNS = {
+    "react.js": "https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js",
+    "react-dom.js": "https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js",
+    "babel.js": "https://cdn.jsdelivr.net/npm/@babel/standalone@7.8.3/babel.min.js",
+    "lucide.js": "https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js",
+    "tailwind.js": "https://cdn.tailwindcss.com"
+}
+
+import urllib.request
+for name, url in JS_CDNS.items():
+    path = os.path.join(STATIC_DIR, name)
+    if not os.path.exists(path):
+        logger.info(f"Downloading static dependency: {name} from {url}...")
+        try:
+            req = urllib.request.Request(
+                url, 
+                headers={'User-Agent': 'Mozilla/5.0'}
+            )
+            with urllib.request.urlopen(req) as response:
+                with open(path, "wb") as out_file:
+                    out_file.write(response.read())
+            logger.info(f"Successfully downloaded {name}")
+        except Exception as e:
+            logger.error(f"Failed to download {name}: {e}")
+
 
 # -------------------------------------------------------------
 # 2. VALID NANP AREA CODES
@@ -428,6 +456,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/static/{file_name}")
+async def get_static_file(file_name: str):
+    file_path = os.path.join(STATIC_DIR, file_name)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    media_type = "application/javascript" if file_name.endswith(".js") else "text/plain"
+    return FileResponse(file_path, media_type=media_type)
+
 @app.post("/api/upload")
 async def upload_file(file: UploadFile = File(...)):
     try:
@@ -681,8 +717,8 @@ async def serve_frontend():
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DedupeFlow SaaS</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS (Served Locally) -->
+    <script src="/static/tailwind.js"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -737,17 +773,18 @@ async def serve_frontend():
         background: #334155;
       }
     </style>
-    <!-- React and Babel CDNs -->
-    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js" crossorigin></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.12/babel.min.js"></script>
-    <!-- Lucide Icons -->
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <!-- React and Babel (Served Locally) -->
+    <script src="/static/react.js" crossorigin></script>
+    <script src="/static/react-dom.js" crossorigin></script>
+    <script src="/static/babel.js"></script>
+    <!-- Lucide Icons (Served Locally) -->
+    <script src="/static/lucide.js"></script>
 </head>
 <body class="bg-grid-glow min-h-screen text-slate-200 pb-20 px-6 sm:px-12">
     <div id="root"></div>
 
     <script type="text/babel">
+      /** @jsxRuntime classic */
       const { useState, useEffect, useMemo, useRef } = React;
 
       // Simple wrapper components for Lucide icons using global lucide object
